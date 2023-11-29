@@ -3,6 +3,7 @@ import { DbService } from './db.service';
 import { ConfigModule, ConfigService } from '@nestjs/config/dist';
 import envConfig from '@config/base';
 import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from './models/user.model';
 
 @Global()
 @Module({
@@ -25,6 +26,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         },
       }),
     }),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   providers: [ConfigService, DbService],
   exports: [ConfigService, DbService],
