@@ -27,7 +27,9 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   async login(@Body() loginAuthDto: LoginAuthDto, @Req() req) {
     const user = req.user;
-    const token = this.jwtService.sign(String(user._id));
+    const token = this.jwtService.sign({
+      id: String(user._id),
+    });
     return {
       token,
     };

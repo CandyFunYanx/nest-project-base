@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { Strategy, StrategyOptions, ExtractJwt } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
@@ -13,11 +14,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get('JWT_SECRET'),
+      secretOrKey: process.env.JWT_SECRET || configService.get('JWT_SECRET'),
     } as StrategyOptions);
   }
 
   async validate(id) {
-    return await this.userModel.findById(id);
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new HttpException('没有授权，请登录', HttpStatus.UNAUTHORIZED);
+    }
+    return user;
   }
 }
