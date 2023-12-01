@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { TransformInterceptor } from './interceptor/transform/transform.interceptor';
+import { HttpExceptionFilter } from './filter/http_exception/http_exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -17,6 +18,9 @@ async function bootstrap() {
 
   // 使用拦截器 响应数据统一
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  // 使用错误处理
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const option = new DocumentBuilder()
     .setTitle('Nest Project Base Api Docs')

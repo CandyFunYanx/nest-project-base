@@ -20,10 +20,10 @@ import { User, UserSchema } from './models/user.model';
           'localhost',
         )}:${configService.get('DB_PORT', '27017')}`,
         dbName: configService.get('DB_DATABASE', 'test'),
-        auth: {
-          username: configService.get('DB_USER', 'root'),
-          password: configService.get('DB_PASS', 'root'),
-        },
+        // auth: {
+        //   username: configService.get('DB_USER', 'root'),
+        //   password: configService.get('DB_PASS', 'root'),
+        // },
       }),
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),

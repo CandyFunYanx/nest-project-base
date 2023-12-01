@@ -10,11 +10,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 
+@ApiTags('Auth校验')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -27,11 +28,26 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   async login(@Body() loginAuthDto: LoginAuthDto, @Req() req) {
     const user = req.user;
-    const token = this.jwtService.sign({
-      id: String(user._id),
-    });
+    const token = this.jwtService.sign(
+      {
+        id: String(user._id),
+      },
+      {
+        expiresIn: '0.01h',
+      },
+    );
+    const ftoken = this.jwtService.sign(
+      {
+        id: String(user._id),
+      },
+      {
+        expiresIn: '7d',
+      },
+    );
     return {
-      token,
+      access_token: token,
+      refresh_token: ftoken,
+      msg: '登录成功',
     };
   }
 
