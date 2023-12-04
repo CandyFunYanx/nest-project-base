@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { HydratedDocument } from "mongoose";
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcryptjs';
+import { Role } from './role.model';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -21,6 +22,10 @@ export class User {
     select: false,
   })
   password: string;
+
+  @ApiProperty({ description: '身份' })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }] })
+  roles: Role[];
 }
 
 /**
