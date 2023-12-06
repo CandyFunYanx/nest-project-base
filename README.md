@@ -383,3 +383,125 @@ export class RoleGuard implements CanActivate {
 @Roles(1, 2)
 @UseGuards(AuthGuard('jwt'), RoleGuard)
 ```
+
+
+
+
+
+## MySql
+
+entity
+
+```ts
+
+import { UserStatus } from 'src/server/user/enum/user.enum';
+import { Entity, PrimaryColumn, Column, Index } from 'typeorm';
+import { EntityTemp } from '../entity.temp';
+
+@Entity({
+  name: 'tb_user',
+  synchronize: false,
+})
+export class User extends EntityTemp {
+  @PrimaryColumn({
+    type: 'char',
+    length: 16,
+    comment: '用户ID',
+  })
+  user_id: string;
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: false,
+    comment: '用户名',
+  })
+  user_name: string;
+
+  @Index('idx_mail', { unique: true })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    comment: '邮箱号',
+    nullable: true,
+  })
+  mail: string;
+
+  @Index('status_idx')
+  @Column({
+    type: 'tinyint',
+    nullable: false,
+    comment: '状态 1 正常 2 停用',
+    default: UserStatus.DEF,
+  })
+  status: UserStatus;
+
+  @Column({
+    type: 'int',
+    comment: '年龄',
+    nullable: true,
+  })
+  year: number;
+}
+
+```
+
+module
+
+```ts
+
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import mysqlConfig from 'config/mysql.config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from '@hapi/joi';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      load: [mysqlConfig], // 加载自定义配置项
+      validationSchema: Joi.object({
+        // 配置文件.env校验
+        MYSQL_HOST: Joi.string().default('localhost'),
+        port: Joi.number().default(3306),
+        synchronize: Joi.boolean() // 是否反向同步
+          .valid(true, false)
+          .default(false),
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      /**
+       * name属性:
+       * 用于链接多个mysql的标识
+       * 使用时,引入 TypeOrmModule.forFeature([OldArticle], 'xxxx')
+       *  以及
+       * @InjectRepository(OldUser, 'xxxx)
+       * private readonly oldUserRepository: Repository<OldUser>,
+       */
+      imports: [ConfigModule], // 数据库配置项依赖于ConfigModule，需在此引入
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const mysqlConfig: {
+          host: string;
+          port: number;
+          username: string;
+          password: string;
+          database: string;
+          synchronize: boolean; // true 会反向同步表，如加入数据库中没有的新字段
+          logging: boolean; // 生产模式关闭
+        } = await configService.get('MYSQL_CONFIG');
+
+        return {
+          ...mysqlConfig,
+          type: 'mysql',
+          entities: [`${__dirname}/entities/*.entity{.ts,.js}`], // 扫描所有实体类
+          // timezone: '+8:00', // 时区调整
+        };
+      },
+    }),
+  ],
+})
+export class DbMysqlModule {}
+
+```
+
